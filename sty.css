@@ -1,0 +1,99 @@
+/* * * * * * * * * * * * * */
+/*                         */
+/* Partridge puzzle widget */
+/*                         */
+/* Created by              */
+/*         Matthew Scroggs */
+/*                         */
+/* mscroggs.co.uk/squares  */
+/*                         */
+/* * * * * * * * * * * * * */
+
+#psquares-grid-container {
+    display:grid;
+    height:600px;
+    width:600px;
+}
+.psquares-sq, .psquares-sq-highlight {
+    margin:0px;
+    padding:0px;
+}
+
+#psquares-options {
+    padding-top:10px;
+}
+
+a.noul {
+    text-decoration:none;
+    color:black;
+}
+
+.psquares-sq.placed {
+    pointer-events:none;
+    overflow:hidden;
+    text-align:center;
+    display:grid;
+    grid-template-rows:1fr auto 1fr;
+    container-type: inline-size;
+}
+.psquares-sq.placed div {
+    grid-row:2 / span 1;
+    font-size:min(30cqw, 16px);
+}
+
+.psquares-sq-highlight {
+    z-index:10;
+    pointer-events:none;
+}
+
+.psquares-sq-highlight.active {
+    background-color:#FFA366;
+}
+
+.psquares-sq-highlight.overlap {
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' viewBox='-4 -4 18 18'><line x1='0' x2='10' y1='0' y2='10' stroke='red' stroke-width='3' line-cap='round' /><line x1='0' x2='10' y1='10' y2='0' stroke='red' stroke-width='3' line-cap='round' /></svg>");
+    background-repeat:no-repeat;
+    background-position:center center;
+    background-size:100% 100%;
+}
+
+.psquares-sq {
+    border:1px solid black;
+    background-color:#808080;
+}
+
+.psquares-sq.piece1,
+.psquares-sq.piece9 {
+    background-color:#FFD300;
+}
+.psquares-sq.piece2,
+.psquares-sq.piece10 {
+    background-color:#DEFF0A;
+}
+.psquares-sq.piece3,
+.psquares-sq.piece11 {
+    background-color:#A1FF0A;
+}
+.psquares-sq.piece4,
+.psquares-sq.piece12 {
+    background-color:#0AFF99;
+}
+.psquares-sq.piece5,
+.psquares-sq.piece13 {
+    background-color:#0AEFFF;
+}
+.psquares-sq.piece6,
+.psquares-sq.piece14 {
+    background-color:#147DF5;
+}
+.psquares-sq.piece7,
+.psquares-sq.piece15 {
+    background-color:#580AFF;
+    color:white;
+}
+.psquares-sq.piece8,
+.psquares-sq.piece16 {
+    background-color:#BE0AFF;
+    color:white;
+}
+
