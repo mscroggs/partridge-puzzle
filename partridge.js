@@ -11,7 +11,7 @@
 
 var psquares_n_start = 9;
 var psquares_n = false;
-var psquares_showimpossible = true;
+var psquares_showimpossible = true; // TODO
 var psquares_piece = false;
 var psquares_placed = [];
 var psquares_piece_map = {};
@@ -74,6 +74,10 @@ function psquares_update_squares(n) {
     }
     html += "</div>";
     e.innerHTML = html;
+
+    psquares_piece = false;
+    psquares_placed = [];
+    psquares_piece_map = {};
 
     psquares_remaining = {};
     for (var i = 1; i <= n; i++) {
