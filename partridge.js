@@ -51,14 +51,14 @@ function psquares_init(id, config) {
     }
 
     if (data !== false && n !== false) {
-        psquares_n = n
+        psquares_n_start = n
     }
     psquares_new(id);
 
     if (data !== false && n !== false) {
         for (var i = 0; i < data.length; ++i) {
             psquares_set_piece(data[i][0]);
-            psquares_place_piece(data[i][1], data[i][2]);
+            psquares_place_piece(data[i][1]+(data[i][0]-1)/2, data[i][2]+(data[i][0]-1)/2);
         }
     }
 
