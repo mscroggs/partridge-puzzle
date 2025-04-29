@@ -30,6 +30,63 @@ function psquares_init(id, config) {
         }
     }
 
+    var data = false;
+    var n = false;
+    if (window.location.search.length > 0) {
+        var parts = window.location.search.substr(1).split("&");
+        for (var i = 0; i < parts.length; i++) {
+            var key = decodeURIComponent(parts[i].split("=")[0]);
+            var value = decodeURIComponent(parts[i].split("=")[1]);
+            if (key == "sq_n") {
+                n = value / 1;
+            } else if (key == "sq_d") {
+                data = [];
+                var vsp = value.split(";");
+                for (var j = 0; j < vsp.length; j++) {
+                    data[data.length] = [vsp[j].split(",")[0] / 1, vsp[j].split(",")[1] / 1, vsp[j].split(",")[2] / 1];
+                }
+                // window.location.protocol + "//" + window.location.host + window.location.pathname
+            }
+        }
+    }
+
+    if (data !== false && n !== false) {
+        psquares_n = n
+    }
+    psquares_new(id);
+
+    if (data !== false && n !== false) {
+        for (var i = 0; i < data.length; ++i) {
+            psquares_set_piece(data[i][0]);
+            psquares_place_piece(data[i][1], data[i][2]);
+        }
+    }
+
+}
+
+function psquares_share() {
+    var url = window.location.protocol + "//" + window.location.host + window.location.pathname;
+    url += "?";
+    url += "sq_n=" + psquares_n
+    url += "&"
+    url += "sq_d="
+    var next = ""
+    for (var i = 0; i < psquares_placed.length; i++) {
+        if (psquares_placed[i] !== false) {
+            url += next
+            next = ";"
+            url += psquares_placed[i][0] + ","
+            url += psquares_placed[i][1][0][0] + ","
+            url += psquares_placed[i][1][0][1]
+        }
+    }
+
+    document.getElementById("psquares-sharearea").innerHTML = url
+}
+
+function psquares_new(id) {
+    var e = document.getElementById(id);
+
     var html = "<div style='display:inline-block;vertical-align:top'>";
     html += "<div id='psquares-squares'></div>";
     html += "<div id='psquares-options'>";
@@ -37,7 +94,10 @@ function psquares_init(id, config) {
     html += psquares_n_start;
     html += "' size='3' /></div>";
     html += "<br />"
-    html += "<div><button onclick='psquares_init(\"" + id + "\", psquares_n)'>Reset</button></div>";
+    html += "<div><button onclick='psquares_new(\"" + id + "\", psquares_n)'>Reset</button></div>";
+// TODO
+//    html += "<div><button onclick='psquares_share()'>Share current arrangement</button></div>";
+//    html += "<div id='psquares-sharearea'></div>"
     html += "</div>";
     html += "</div>";
     html += "<div style='display:inline-block;vertical-align:top;max-width:40%;padding:10px'>";
@@ -176,7 +236,7 @@ function psquares_place_piece(x,y) {
             for (var i = 0; i < positions.length; i++) {
                 psquares_piece_map[positions[i]] = false;
             }
-            psquares_placed[[x, y]] = false;
+            psquares_placed[piece_n] = false;
             psquares_set_piece_pos(x,y);
         }
         return;
