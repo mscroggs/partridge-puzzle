@@ -64,7 +64,7 @@ function psquares_init(id, config) {
     document.addEventListener(
         "keydown",
         (event) => {
-          const keyName = event.key;
+          var keyName = event.key;
 
           if (keyName === "Escape") {
             psquares_unset_piece();
