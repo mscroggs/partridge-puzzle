@@ -61,6 +61,18 @@ function psquares_init(id, config) {
             psquares_place_piece(data[i][1]+(data[i][0]-1)/2, data[i][2]+(data[i][0]-1)/2);
         }
     }
+    document.addEventListener(
+        "keydown",
+        (event) => {
+          var keyName = event.key;
+
+          if (keyName === "Escape") {
+            psquares_unset_piece();
+            return;
+          }
+        },
+        false,
+      );
 
 }
 
