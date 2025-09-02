@@ -45,7 +45,6 @@ function psquares_init(id, config) {
                 for (var j = 0; j < vsp.length; j++) {
                     data[data.length] = [vsp[j].split(",")[0] / 1, vsp[j].split(",")[1] / 1, vsp[j].split(",")[2] / 1];
                 }
-                // window.location.protocol + "//" + window.location.host + window.location.pathname
             }
         }
     }
@@ -161,12 +160,23 @@ function psquares_update_squares(n) {
 function psquares_update_pieces() {
     e = document.getElementById("psquares-pieces");
     html = "";
+    if (psquares_piece === false) {
+        html += "<div>Click on a square below to pick it up.</div>"
+    } else {
+        html += "<div>You are holding a " + psquares_piece + "&times;" + psquares_piece + " square. "
+        html += "Click on the grid to place it. "
+        html += "<a href='javascript:psquares_unset_piece()'>Put piece down</a>.</div>"
+    }
     var tri_n = Math.floor(psquares_n * (psquares_n + 1) / 2);
     for (var i in psquares_remaining) {
-        if (psquares_remaining[i] > 0) {
+        var rem = psquares_remaining[i];
+        if (psquares_piece == i) {
+            rem -= 1;
+        }
+        if (rem > 0) {
             size = 600 / tri_n * i;
-            html += "<div style='padding:10px;margin-bottom:" + (6 * (psquares_remaining[i] - 1)) + "px;margin-right:" + (size - 20) + "px;display:inline-block'>";
-            for (var j = 0; j < psquares_remaining[i]; j++) {
+            html += "<div style='padding:10px;margin-bottom:" + (6 * (rem - 1)) + "px;margin-right:" + (size - 20) + "px;display:inline-block'>";
+            for (var j = 0; j < rem; j++) {
                 html += "<a class='noul' href='javascript:psquares_set_piece(" + i + ")' style='display:inline-block;margin-right:" + (20 - size) + "px'>";
                 html += "<div style='display:grid;height:" + size + "px;width:" + size + "px;"
                     + "position:relative;top:" + (j * 6) + "px'>";
@@ -199,6 +209,7 @@ function psquares_set_piece(n) {
             document.getElementById("psquares-piece-highlight-" + i + "-" + j).className = "psquares-sq-highlight";
         }
     }
+    psquares_update_pieces()
 }
 
 function psquares_unset_piece() {
@@ -209,6 +220,7 @@ function psquares_unset_piece() {
             document.getElementById("psquares-piece-highlight-" + i + "-" + j).className = "psquares-sq-highlight";
         }
     }
+    psquares_update_pieces()
 }
 
 function psquares_set_piece_pos(x,y) {
@@ -287,9 +299,9 @@ function psquares_place_piece(x,y) {
     document.getElementById("psquares-grid-container").appendChild(div)
 
     psquares_remaining[psquares_piece]--;
+    psquares_piece = false;
     psquares_update_pieces();
 
-    psquares_piece = false;
     for (var i = 0; i < tri_n; i++) {
         for (var j = 0; j < tri_n; j++) {
             document.getElementById("psquares-piece-highlight-" + i + "-" + j).className = "psquares-sq-highlight";
