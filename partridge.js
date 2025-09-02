@@ -159,14 +159,15 @@ function psquares_update_squares(n) {
 
 function psquares_update_pieces() {
     e = document.getElementById("psquares-pieces");
-    html = "";
+    html = "<div style='max-width:400px;height:50px;margin:auto'>";
     if (psquares_piece === false) {
-        html += "<div>Click on a square below to pick it up.</div>"
+        html += "Click on a square below to pick it up.</div>"
     } else {
-        html += "<div>You are holding a " + psquares_piece + "&times;" + psquares_piece + " square. "
+        html += "You are holding a " + psquares_piece + "&times;" + psquares_piece + " square. "
         html += "Click on the grid to place it. "
-        html += "<a href='javascript:psquares_unset_piece()'>Put piece down</a>.</div>"
+        html += "<a href='javascript:psquares_unset_piece()'>Put piece down</a>."
     }
+    html += "</div>"
     var tri_n = Math.floor(psquares_n * (psquares_n + 1) / 2);
     for (var i in psquares_remaining) {
         var rem = psquares_remaining[i];
@@ -254,8 +255,8 @@ function psquares_place_piece(x,y) {
             var psize = psquares_placed[piece_n][0];
             var positions = psquares_placed[piece_n][1];
             psquares_remaining[psize]++;
-            psquares_update_pieces();
             psquares_piece = psize;
+            psquares_update_pieces();
             document.getElementById("psquares-sq-placed-" + piece_n).remove();
             for (var i = 0; i < positions.length; i++) {
                 psquares_piece_map[positions[i]] = false;
