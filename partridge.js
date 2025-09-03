@@ -159,7 +159,7 @@ function psquares_update_squares(n) {
 
 function psquares_update_pieces() {
     e = document.getElementById("psquares-pieces");
-    html = "<div style='max-width:400px;height:50px;margin:auto'>";
+    html = "<div style='max-width:400px;min-height:50px;margin:auto'>";
     if (psquares_piece === false) {
         html += "Click on a square below to pick it up.</div>"
     } else {
