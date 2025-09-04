@@ -97,3 +97,10 @@ a.noul {
     color:white;
 }
 
+#psquares-pieces {
+    min-width:500px
+}
+
+#psquares-info {
+    min-height:50px
+}
