@@ -111,9 +111,7 @@ function psquares_new(id) {
 //    html += "<div id='psquares-sharearea'></div>"
     html += "</div>";
     html += "</div>";
-    html += "<div style='display:inline-block;vertical-align:top;max-width:40%;padding:10px'>";
     html += "<div id='psquares-pieces'></div>";
-    html += "</div>";
     html += "</div>";
 
     e.innerHTML = html;

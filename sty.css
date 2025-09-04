@@ -97,8 +97,17 @@ a.noul {
     color:white;
 }
 
+@media (min-width:1250px){
 #psquares-pieces {
-    min-width:500px
+    max-width:40%;
+}
+}
+#psquares-pieces {
+    min-width:500px;
+    display:inline-block;
+    vertical-align:top;
+    padding:10px;
+    margin:auto;
 }
 
 #psquares-info {
