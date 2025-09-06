@@ -33,7 +33,7 @@ function complete(ls) {
 }
 
 function should_exit() {
-    return counter > 500;
+    return counter > 100;
 }
 
 function is_solvable_from(pmap, rem, pre) {
