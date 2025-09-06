@@ -154,6 +154,11 @@ function is_solvable_from(pmap, rem, pre) {
 }
 
 addEventListener("message", (event) => {
+    if (event.data[0] === "kill") {
+        cancel = true;
+        searching = false;
+        return;
+    }
     n = parseInt(event.data[0]);
     rem_in = {};
     for (var a in event.data[2]) {

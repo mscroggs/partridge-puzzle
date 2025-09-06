@@ -402,6 +402,9 @@ function psquares_search_for_solution() {
 }
 
 function psquares_toggle_hints(value) {
+    if(!value) {
+        psquares_worker.postMessage("kill");
+    }
     psquares_showhints = value
     psquares_update_hint()
 }
