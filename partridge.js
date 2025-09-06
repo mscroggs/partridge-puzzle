@@ -121,9 +121,7 @@ function psquares_new(id) {
 //    html += "<div id='psquares-sharearea'></div>"
     html += "</div>";
     html += "</div>";
-    html += "<div style='display:inline-block;vertical-align:top;max-width:40%;padding:10px'>";
     html += "<div id='psquares-pieces'></div>";
-    html += "</div>";
     html += "</div>";
 
     e.innerHTML = html;
@@ -174,8 +172,8 @@ function psquares_update_squares(n) {
 }
 
 function psquares_update_pieces() {
-    var e = document.getElementById("psquares-pieces");
-    html = "<div style='max-width:400px;height:50px;margin:auto'>";
+    e = document.getElementById("psquares-pieces");
+    html = "<div id='psquares-info'>";
     if (psquares_piece === false) {
         html += "Click on a square below to pick it up.</div>"
     } else {
