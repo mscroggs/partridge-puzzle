@@ -14,9 +14,8 @@ var psquares_n = false;
 var psquares_showhints = false;
 var psquares_piece = false;
 var psquares_placed = [];
-var psquares_piece_map = {};
+var psquares_piece_map = [];
 var psquares_remaining = {};
-var psquares_ac = null;
 
 function psquares_init(id, config) {
     var e = document.getElementById(id);
@@ -39,12 +38,12 @@ function psquares_init(id, config) {
             var key = decodeURIComponent(parts[i].split("=")[0]);
             var value = decodeURIComponent(parts[i].split("=")[1]);
             if (key == "sq_n") {
-                n = value / 1;
+                n = parseInt(value);
             } else if (key == "sq_d") {
                 data = [];
                 var vsp = value.split(";");
                 for (var j = 0; j < vsp.length; j++) {
-                    data[data.length] = [vsp[j].split(",")[0] / 1, vsp[j].split(",")[1] / 1, vsp[j].split(",")[2] / 1];
+                    data[data.length] = [parseInt(vsp[j].split(",")[0]), parseInt(vsp[j].split(",")[1]), parseInt(vsp[j].split(",")[2])];
                 }
             }
         }
@@ -159,8 +158,13 @@ function psquares_update_squares(n) {
 
     psquares_piece = false;
     psquares_placed = [];
-    psquares_piece_map = {};
-
+    psquares_piece_map = [];
+    for (var i = 0; i < tri_n; i++) {
+        psquares_piece_map[i] = [];
+        for (var j = 0; j < tri_n; j++) {
+            psquares_piece_map[i][j] = false;
+        }
+    }
     psquares_remaining = {};
     for (var i = 1; i <= n; i++) {
         psquares_remaining[i] = i;
@@ -251,7 +255,7 @@ function psquares_set_piece_pos(x,y) {
     var tl = psquares_compute_top_left(x, y, psquares_piece);
     for (var i = tl[0]; i < tl[0] + psquares_piece; i++) {
         for (var j = tl[1]; j < tl[1] + psquares_piece; j++) {
-            if ([i, j] in psquares_piece_map && psquares_piece_map[[i, j]] !== false) {
+            if (psquares_piece_map[i][j] !== false) {
                 document.getElementById("psquares-piece-highlight-" + i + "-" + j).className = "psquares-sq-highlight overlap";
             } else {
                 document.getElementById("psquares-piece-highlight-" + i + "-" + j).className = "psquares-sq-highlight active";
@@ -267,8 +271,8 @@ function psquares_place_piece_then_update_hint(x,y) {
 
 function psquares_place_piece(x,y) {
     if (psquares_piece === false) {
-        if ([x, y] in psquares_piece_map && psquares_piece_map[[x, y]] !== false) {
-            var piece_n = psquares_piece_map[[x, y]];
+        if (psquares_piece_map[x][y] !== false) {
+            var piece_n = psquares_piece_map[x][y];
             var psize = psquares_placed[piece_n][0];
             var positions = psquares_placed[piece_n][1];
             psquares_remaining[psize]++;
@@ -276,7 +280,7 @@ function psquares_place_piece(x,y) {
             psquares_update_pieces();
             document.getElementById("psquares-sq-placed-" + piece_n).remove();
             for (var i = 0; i < positions.length; i++) {
-                psquares_piece_map[positions[i]] = false;
+                psquares_piece_map[positions[i][0]][positions[i][1]] = false;
             }
             psquares_placed[piece_n] = false;
             psquares_set_piece_pos(x,y);
@@ -290,7 +294,7 @@ function psquares_place_piece(x,y) {
     var tl = psquares_compute_top_left(x, y, psquares_piece);
     for (var i = tl[0]; i < tl[0] + psquares_piece; i++) {
         for (var j = tl[1]; j < tl[1] + psquares_piece; j++) {
-            if ([i, j] in psquares_piece_map && psquares_piece_map[[i, j]] !== false) {
+            if (psquares_piece_map[i][j] !== false) {
                 return;
             }
         }
@@ -303,7 +307,7 @@ function psquares_place_piece(x,y) {
     for (var i = tl[0]; i < tl[0] + psquares_piece; i++) {
         for (var j = tl[1]; j < tl[1] + psquares_piece; j++) {
             psquares_placed[piece_n][1][psquares_placed[piece_n][1].length] = [i, j];
-            psquares_piece_map[[i, j]] = piece_n;
+            psquares_piece_map[i][j] = piece_n;
         }
     }
 
@@ -327,6 +331,19 @@ function psquares_place_piece(x,y) {
     }
 }
 
+function psquares_count_true(ls) {
+    var tri_n = Math.floor(psquares_n * (psquares_n + 1) / 2);
+    var out = 0;
+    for (var i = 0; i < tri_n; i++) {
+        for (var j = 0; j < tri_n; j++) {
+            if (ls[i][j] !== false) {
+                out++;
+            }
+        }
+    }
+    return out;
+}
+
 function psquares_update_hint() {
     var e = document.getElementById("psquares-hints");
     if(!psquares_showhints) {
@@ -341,7 +358,7 @@ function psquares_update_hint() {
         e.innerHTML = "This puzzle cannot be solved.";
         e.style.color = "#FF0000"
     } else {
-        if (Object.keys(psquares_piece_map).length == 0) {
+        if (psquares_count_true(psquares_piece_map) == 0) {
             e.innerHTML = "This puzzle can be solved.";
             e.style.color = "#008000"
             return
@@ -351,96 +368,37 @@ function psquares_update_hint() {
 }
 
 
-async function psquares_search_for_solution() {
+var psquares_worker = new Worker("partridge-checker.js")
+
+psquares_worker.onmessage = function(event) {
     var e = document.getElementById("psquares-hints");
-    if (psquares_ac) {
-        psquares_ac.abort()
-        psquares_ac = null
+    if (event.data) {
+        e.innerHTML = "This puzzle can be solved with the current pieces placed.";
+        e.style.color = "#008000"
+    } else {
+        e.innerHTML = "This puzzle cannot be solved with the current pieces placed.<br />Try moving or removing a piece.";
+        e.style.color = "#FF0000"
     }
+};
 
-    psquares_ac = new AbortController()
+
+function psquares_search_for_solution() {
+    var e = document.getElementById("psquares-hints");
     e.innerHTML = "Checking if puzzle is solvable (this may take a while).";
-    e.style.color = "#000000"
+    e.style.color = "#000000";
 
-    console.log("a")
-    try {
-        var solvable = await psquares_is_solvable(psquares_ac.signal)
-        if (solvable) {
-            e.innerHTML = "This puzzle can be solved with the current pieces placed.";
-            e.style.color = "#008000"
-        } else {
-            e.innerHTML = "This puzzle cannot be solved with the current pieces placed.<br />Try moving or removing a piece.";
-            e.style.color = "#FF0000"
-        }
-    } catch {
-    }
-    console.log("b")
-}
-
-function psquares_is_solvable(asignal) {
-    return new Promise( (resolve, reject) => {
-        var t = setTimeout( () => {
-            resolve(psquares_is_solvable_from(psquares_piece_map, psquares_remaining));
-        });
-
-        asignal.addEventListener("abort", () => {
-            var error = new DOMException("Cancel", "AbortError")
-            clearTimeout(t)
-            reject( error )
-        });
-    });
-}
-
-function psquares_is_solvable_from(pmap, rem) {
-    var tri_n = Math.floor(psquares_n * (psquares_n + 1) / 2);
-    if (Object.keys(pmap).length == tri_n * tri_n) {
-        return true
-    }
-    for (var t = 0; t < tri_n * 2 - 1; t++) {
-        for (var i = Math.max(0, t - tri_n); i < tri_n && i <= t; i++) {
-            var j = t - i
-            //if (logging) { console.log(i, j) }
-            if (!([i, j] in pmap) || pmap[[i, j]] === false) {
-                for (a in rem) {
-                    if (rem[a] > 0) {
-                        if (a == 1 && (i == 0 || i == 1 || j == 0 || j == 1 || i == tri_n - 1 || i == tri_n - 2 || j == tri_n - 1 || j == tri_n - 2)) {
-                            continue;
-                        }
-                        var ok = true;
-                        var pmap2 = {}
-                        for (var p in pmap) {
-                            pmap2[p] = pmap[p];
-                        }
-                        for (var ai=0; ai < a; ai++) {
-                            for (var aj=0; aj < a; aj++) {
-                                //if (logging) { console.log("=>", i+ai, j+aj) }
-                                if ([i+ai, j+aj] in pmap && pmap[[i+ai, j+aj]] !==false) {
-                                    ok = false
-                                    break
-                                }
-                                pmap2[[i+ai, j+aj]] = "!"
-                            }
-                            if(!ok) { break }
-                        }
-                        if (ok) {
-                            var rem2 = {}
-                            for (b in rem) {
-                                if (b == a) {
-                                    rem2[b] = rem[a] - 1
-                                } else {
-                                    rem2[b] = rem[b]
-                                }
-                            }
-                            if(psquares_is_solvable_from(pmap2, rem2)) {
-                                return true
-                            }
-                        }
-                    }
-                }
-                return false
+    var pmap = [];
+    for (var i in psquares_piece_map) {
+        pmap[i] = [];
+        for (var j in psquares_piece_map[i]) {
+            if (psquares_piece_map[i][j] === false) {
+                pmap[i][j] = false;
+            } else {
+                pmap[i][j] = true;
             }
         }
     }
+    psquares_worker.postMessage([psquares_n, psquares_piece_map, psquares_remaining]);
 }
 
 function psquares_toggle_hints(value) {
