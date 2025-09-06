@@ -20,6 +20,8 @@ var n = null;
 var pmap_in = null;
 var rem_in = null;
 var ready = true;
+var dots = "...";
+var iters = 0;
 
 function complete(ls) {
     for (var i in ls) {
@@ -184,6 +186,15 @@ function tick() {
         exited = false;
         ready = false;
         is_solvable_from(pmap_in, rem_in, []);
+        iters++;
+        if (iters >= 10) {
+            iters = 0;
+            if (dots.length >= 3) {
+                dots = "";
+            }
+            dots += ".";
+            postMessage(["Checking if puzzle is solvable (this may take a while)" + dots, "#000000"]);
+        }
         ready = true;
     }
 }

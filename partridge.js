@@ -370,12 +370,15 @@ var psquares_worker = new Worker("partridge-checker.js")
 
 psquares_worker.onmessage = function(event) {
     var e = document.getElementById("psquares-hints");
-    if (event.data) {
+    if (event.data === true) {
         e.innerHTML = "This puzzle can be solved with the current pieces placed.";
         e.style.color = "#008000"
-    } else {
+    } else if (event.data === false) {
         e.innerHTML = "This puzzle cannot be solved with the current pieces placed.<br />Try moving or removing a piece.";
         e.style.color = "#FF0000"
+    } else {
+        e.innerHTML = event.data[0];
+        e.style.color = event.data[1];
     }
 };
 
