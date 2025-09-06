@@ -11,17 +11,17 @@
 
 var psquares_n_start = 9;
 var psquares_n = false;
-var psquares_showimpossible = true; // TODO
+var psquares_showhints = false;
 var psquares_piece = false;
 var psquares_placed = [];
-var psquares_piece_map = {};
+var psquares_piece_map = [];
 var psquares_remaining = {};
 
 function psquares_init(id, config) {
     var e = document.getElementById(id);
     for (var i in config) {
-        if (i == "show_impossible") {
-            psquares_showimpossible = config[i];
+        if (i == "show_hints") {
+            psquares_showhints = config[i];
         } else if (i == "n") {
             psquares_n_start = config[i];
         } else {
@@ -38,12 +38,12 @@ function psquares_init(id, config) {
             var key = decodeURIComponent(parts[i].split("=")[0]);
             var value = decodeURIComponent(parts[i].split("=")[1]);
             if (key == "sq_n") {
-                n = value / 1;
+                n = parseInt(value);
             } else if (key == "sq_d") {
                 data = [];
                 var vsp = value.split(";");
                 for (var j = 0; j < vsp.length; j++) {
-                    data[data.length] = [vsp[j].split(",")[0] / 1, vsp[j].split(",")[1] / 1, vsp[j].split(",")[2] / 1];
+                    data[data.length] = [parseInt(vsp[j].split(",")[0]), parseInt(vsp[j].split(",")[1]), parseInt(vsp[j].split(",")[2])];
                 }
             }
         }
@@ -60,6 +60,7 @@ function psquares_init(id, config) {
             psquares_place_piece(data[i][1]+(data[i][0]-1)/2, data[i][2]+(data[i][0]-1)/2);
         }
     }
+    psquares_update_hint();
     document.addEventListener(
         "keydown",
         (event) => {
@@ -101,9 +102,18 @@ function psquares_new(id) {
     var html = "<div style='display:inline-block;vertical-align:top'>";
     html += "<div id='psquares-squares'></div>";
     html += "<div id='psquares-options'>";
-    html += "<div>Size: <input type='number' min='1' max='15' onchange='psquares_update_squares(this.value)' value='";
+    html += "<div>"
+    html += "Size: <input type='number' min='1' max='15' onchange='psquares_update_squares(this.value)' value='";
     html += psquares_n_start;
-    html += "' size='3' /></div>";
+    html += "' size='3' />"
+    html += " &nbsp; "
+    html += "<label><input type='checkbox' onchange='psquares_toggle_hints(this.checked)' id='psquares-hints-check'"
+    if (psquares_showhints) {
+        html += " checked"
+    }
+    html += "> Show hints</label>"
+    html += "</div>";
+    html += "<div id='psquares-hints'></div>";
     html += "<br />"
     html += "<div><button onclick='psquares_new(\"" + id + "\", psquares_n)'>Reset</button></div>";
 // TODO
@@ -133,7 +143,7 @@ function psquares_update_squares(n) {
         for (var j = 0; j < tri_n; j++) {
             html += "<div class='psquares-sq' id='psquares-piece-" + i + "-" + j + "'"
                 + " onmouseover='psquares_set_piece_pos("+i+", "+j+")'"
-                + " onclick='psquares_place_piece("+i+", "+j+")'"
+                + " onclick='psquares_place_piece_then_update_hint("+i+", "+j+")'"
                 + " style='grid-row:" + (j + 1) +  " / span 1;grid-column:" + (i + 1) + " / span 1'"
                 + "></div>";
             html += "<div class='psquares-sq-highlight' id='psquares-piece-highlight-" + i + "-" + j + "'"
@@ -146,13 +156,19 @@ function psquares_update_squares(n) {
 
     psquares_piece = false;
     psquares_placed = [];
-    psquares_piece_map = {};
-
+    psquares_piece_map = [];
+    for (var i = 0; i < tri_n; i++) {
+        psquares_piece_map[i] = [];
+        for (var j = 0; j < tri_n; j++) {
+            psquares_piece_map[i][j] = false;
+        }
+    }
     psquares_remaining = {};
     for (var i = 1; i <= n; i++) {
         psquares_remaining[i] = i;
     }
     psquares_update_pieces();
+    psquares_update_hint();
 }
 
 function psquares_update_pieces() {
@@ -237,7 +253,7 @@ function psquares_set_piece_pos(x,y) {
     var tl = psquares_compute_top_left(x, y, psquares_piece);
     for (var i = tl[0]; i < tl[0] + psquares_piece; i++) {
         for (var j = tl[1]; j < tl[1] + psquares_piece; j++) {
-            if ([i, j] in psquares_piece_map && psquares_piece_map[[i, j]] !== false) {
+            if (psquares_piece_map[i][j] !== false) {
                 document.getElementById("psquares-piece-highlight-" + i + "-" + j).className = "psquares-sq-highlight overlap";
             } else {
                 document.getElementById("psquares-piece-highlight-" + i + "-" + j).className = "psquares-sq-highlight active";
@@ -246,10 +262,15 @@ function psquares_set_piece_pos(x,y) {
     }
 }
 
+function psquares_place_piece_then_update_hint(x,y) {
+    psquares_place_piece(x,y)
+    psquares_update_hint()
+}
+
 function psquares_place_piece(x,y) {
     if (psquares_piece === false) {
-        if ([x, y] in psquares_piece_map && psquares_piece_map[[x, y]] !== false) {
-            var piece_n = psquares_piece_map[[x, y]];
+        if (psquares_piece_map[x][y] !== false) {
+            var piece_n = psquares_piece_map[x][y];
             var psize = psquares_placed[piece_n][0];
             var positions = psquares_placed[piece_n][1];
             psquares_remaining[psize]++;
@@ -257,7 +278,7 @@ function psquares_place_piece(x,y) {
             psquares_update_pieces();
             document.getElementById("psquares-sq-placed-" + piece_n).remove();
             for (var i = 0; i < positions.length; i++) {
-                psquares_piece_map[positions[i]] = false;
+                psquares_piece_map[positions[i][0]][positions[i][1]] = false;
             }
             psquares_placed[piece_n] = false;
             psquares_set_piece_pos(x,y);
@@ -271,7 +292,7 @@ function psquares_place_piece(x,y) {
     var tl = psquares_compute_top_left(x, y, psquares_piece);
     for (var i = tl[0]; i < tl[0] + psquares_piece; i++) {
         for (var j = tl[1]; j < tl[1] + psquares_piece; j++) {
-            if ([i, j] in psquares_piece_map && psquares_piece_map[[i, j]] !== false) {
+            if (psquares_piece_map[i][j] !== false) {
                 return;
             }
         }
@@ -284,7 +305,7 @@ function psquares_place_piece(x,y) {
     for (var i = tl[0]; i < tl[0] + psquares_piece; i++) {
         for (var j = tl[1]; j < tl[1] + psquares_piece; j++) {
             psquares_placed[piece_n][1][psquares_placed[piece_n][1].length] = [i, j];
-            psquares_piece_map[[i, j]] = piece_n;
+            psquares_piece_map[i][j] = piece_n;
         }
     }
 
@@ -306,4 +327,82 @@ function psquares_place_piece(x,y) {
             document.getElementById("psquares-piece-highlight-" + i + "-" + j).className = "psquares-sq-highlight";
         }
     }
+}
+
+function psquares_count_true(ls) {
+    var tri_n = Math.floor(psquares_n * (psquares_n + 1) / 2);
+    var out = 0;
+    for (var i = 0; i < tri_n; i++) {
+        for (var j = 0; j < tri_n; j++) {
+            if (ls[i][j] !== false) {
+                out++;
+            }
+        }
+    }
+    return out;
+}
+
+function psquares_update_hint() {
+    var e = document.getElementById("psquares-hints");
+    if(!psquares_showhints) {
+        e.innerHTML = "";
+        e.style.color = "#000000"
+        return
+    }
+    if (psquares_n == 1) {
+        e.innerHTML = "This puzzle can be solved.";
+        e.style.color = "#008000"
+    } else if (psquares_n < 8) {
+        e.innerHTML = "This puzzle cannot be solved.";
+        e.style.color = "#FF0000"
+    } else {
+        if (psquares_count_true(psquares_piece_map) == 0) {
+            e.innerHTML = "This puzzle can be solved.";
+            e.style.color = "#008000"
+            return
+        }
+        psquares_search_for_solution()
+    }
+}
+
+
+var psquares_worker = new Worker("partridge-checker.js")
+
+psquares_worker.onmessage = function(event) {
+    var e = document.getElementById("psquares-hints");
+    if (event.data) {
+        e.innerHTML = "This puzzle can be solved with the current pieces placed.";
+        e.style.color = "#008000"
+    } else {
+        e.innerHTML = "This puzzle cannot be solved with the current pieces placed.<br />Try moving or removing a piece.";
+        e.style.color = "#FF0000"
+    }
+};
+
+
+function psquares_search_for_solution() {
+    var e = document.getElementById("psquares-hints");
+    e.innerHTML = "Checking if puzzle is solvable (this may take a while).";
+    e.style.color = "#000000";
+
+    var pmap = [];
+    for (var i in psquares_piece_map) {
+        pmap[i] = [];
+        for (var j in psquares_piece_map[i]) {
+            if (psquares_piece_map[i][j] === false) {
+                pmap[i][j] = false;
+            } else {
+                pmap[i][j] = true;
+            }
+        }
+    }
+    psquares_worker.postMessage([psquares_n, psquares_piece_map, psquares_remaining]);
+}
+
+function psquares_toggle_hints(value) {
+    if(!value) {
+        psquares_worker.postMessage("kill");
+    }
+    psquares_showhints = value
+    psquares_update_hint()
 }
